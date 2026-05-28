@@ -34,6 +34,7 @@ def test_player_get_frame(recorded_trace):
         frame = player.get_frame(0)
         assert frame.line_no is not None
         assert frame.filename is not None
+        assert hasattr(frame, 'locals')
 
 
 def test_player_frame_not_found(recorded_trace):
@@ -49,6 +50,10 @@ def test_player_diff_frames(recorded_trace):
         if player.frame_count >= 2:
             diff = player.diff_frames(0, 1)
             assert 'modified' in diff or 'added' in diff or 'removed' in diff
+        else:
+            # If only one frame, diff should still return dict structure
+            diff = player.diff_frames(0, 0)
+            assert isinstance(diff, dict)
 
 
 def test_player_search_variable(recorded_trace):
