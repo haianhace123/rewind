@@ -40,337 +40,270 @@ Dynamic: requires-dist
 Dynamic: requires-python
 Dynamic: summary
 
-\# Rewind
+# Rewind
 
+> Time-travel debugging for Python.
 
+Record a program once and inspect its execution history frame by frame.
+Navigate backward and forward through runtime state, compare snapshots, and locate bugs with precision.
 
-Time-travel debugging for Python.
+---
 
+## Overview
 
+Rewind is a Python time-travel debugger built for developers who want deeper visibility into program execution without modifying application code.
 
-Record program execution once. Navigate through every line. Find bugs in seconds.
+Instead of repeatedly adding print statements or restarting a debugger session, Rewind records execution state once and allows deterministic replay afterward.
 
+Designed for debugging logic errors, state mutations, unexpected variable changes, and difficult-to-reproduce bugs.
 
+---
 
+## Features
 
+* Time-travel navigation across recorded execution frames
+* Interactive terminal UI with keyboard-driven controls
+* Frame-to-frame state diffing
+* Variable history search across the entire execution timeline
+* SQLite-based trace storage
+* Zero code modifications required
+* CLI and Python API support
+* Lightweight recording format with compression
 
-\## Features
+---
 
+## Installation
 
+Requires Python 3.9 or newer.
 
-\- Time travel navigation through execution history
+```bash
+pip install rewind-debugger
+```
 
-\- Side-by-side diff between any two frames
+---
 
-\- Variable search across all recorded frames
+## Quick Start
 
-\- Terminal user interface with keyboard navigation
+### Record a program
 
-\- Command line tools for analysis
+```python
+from rewind import Recorder
 
-\- Zero code changes required
+recorder = Recorder("trace.db")
 
+recorder.start()
 
+result = buggy_function()
 
+recorder.stop()
+```
 
+### Replay execution
 
-\## Installation
+```bash
+rewind replay trace.db
+```
 
+Use the arrow keys to move through execution history frame by frame.
 
+---
 
-&#x20;   pip install rewind-debugger
+## Example
 
+### Debugging an incorrect discount calculation
 
+```python
+from rewind import Recorder
 
-Requires Python 3.9 or higher.
+def buggy_calculator(prices, discount):
+    total = 0
 
+    for price in prices:
+        total += price * discount  # Incorrect logic
 
+    return total
 
 
+recorder = Recorder("bug.trace")
 
-\## Quick Start
+recorder.start()
 
+result = buggy_calculator([100, 200, 300], 0.1)
 
+print(result)
 
-Record your program:
+recorder.stop()
+```
 
+Replay the trace:
 
+```bash
+rewind replay bug.trace
+```
 
-&#x20;   from rewind import Recorder
+Navigate through frames to inspect how `total` changes during execution and identify the faulty calculation.
 
-&#x20;   
+---
 
-&#x20;   recorder = Recorder("trace.db")
+## Command Line Interface
 
-&#x20;   recorder.start()
+### Record a Python script
 
-&#x20;   
+```bash
+rewind record <script> -o <trace>
+```
 
-&#x20;   result = buggy\_function()
+### Replay a trace
 
-&#x20;   
+```bash
+rewind replay <trace>
+```
 
-&#x20;   recorder.stop()
+### Compare two execution frames
 
+```bash
+rewind diff <trace> <frame_a> <frame_b>
+```
 
+### Search variable history
 
-Debug with time travel:
+```bash
+rewind search <trace> <variable_name>
+```
 
+### Show version information
 
+```bash
+rewind info
+```
 
-&#x20;   rewind replay trace.db
+---
 
+## Architecture
 
+Rewind is built on top of Python's `sys.settrace()` API.
 
-Use left/right arrow keys to move through execution frames.
+### Recording Pipeline
 
+1. Hook into the Python interpreter
+2. Capture execution events line by line
+3. Serialize local execution state
+4. Compress and persist snapshots into SQLite
+5. Replay snapshots through the debugger UI
 
+---
 
+## Performance
 
+Typical recording overhead:
 
-\## Documentation
+* **2–5× runtime overhead** for pure Python workloads
+* Approximately **1 KB trace size per 100 executed lines**
 
+Performance depends on:
 
+* Variable size
+* Serialization complexity
+* Frequency of executed lines
+* Amount of captured state
 
-Full documentation is available in docs/user\_guide.md
+---
 
+## Limitations
 
+Current limitations include:
 
-Key topics:
+* Only the main thread is recorded
+* Async support is partial
+* Some objects cannot be serialized directly
+* Large traces may be generated for long-running programs
+* Not intended for production observability
 
-\- Recording programs via API or command line
+Unsupported objects are represented as lightweight type placeholders during replay.
 
-\- TUI navigation shortcuts
+---
 
-\- Diff and search commands
+## Development
 
-\- Python API reference
+### Clone the repository
 
-\- Troubleshooting common issues
+```bash
+git clone https://github.com/haianhace123/rewind.git
 
+cd rewind
+```
 
+### Install development dependencies
 
+```bash
+pip install -e .[dev]
+```
 
+### Run tests
 
-\## Command Line Reference
+```bash
+pytest tests/ -v
+```
 
+### Run formatters and type checks
 
+```bash
+black rewind/
 
-&#x20;   rewind record <script> -o <trace>
+isort rewind/
 
-&#x20;       Record execution of a Python script.
+mypy rewind/
+```
 
+---
 
+## Documentation
 
-&#x20;   rewind replay <trace>
+Detailed documentation is available in:
 
-&#x20;       Open interactive debugger.
+```text
+docs/user_guide.md
+```
 
+Topics include:
 
+* Recording via API and CLI
+* Interactive debugger navigation
+* Diffing execution state
+* Variable search
+* Internal architecture
+* Troubleshooting
 
-&#x20;   rewind diff <trace> <frame\_a> <frame\_b>
+---
 
-&#x20;       Compare two frames.
+## Roadmap
 
+Planned improvements:
 
+* Multi-thread recording
+* Better async support
+* Remote trace inspection
+* Web-based replay interface
+* Function-level timeline visualization
+* Incremental snapshot optimization
 
-&#x20;   rewind search <trace> <variable\_name>
+---
 
-&#x20;       Find variable across all frames.
+## Contributing
 
+Contributions, bug reports, and feature requests are welcome.
 
+Please open an issue before submitting major architectural changes.
 
-&#x20;   rewind info
+---
 
-&#x20;       Display version information.
-
-
-
-
-
-\## Examples
-
-
-
-Example 1: Record and debug a buggy calculator
-
-
-
-&#x20;   # demo.py
-
-&#x20;   from rewind import Recorder
-
-&#x20;   
-
-&#x20;   def buggy\_calculator(prices, discount):
-
-&#x20;       total = 0
-
-&#x20;       for price in prices:
-
-&#x20;           total += price \* discount  # Bug: should be price \* (1 - discount)
-
-&#x20;       return total
-
-&#x20;   
-
-&#x20;   recorder = Recorder("bug.trace")
-
-&#x20;   recorder.start()
-
-&#x20;   
-
-&#x20;   result = buggy\_calculator(\[100, 200, 300], 0.1)
-
-&#x20;   print(f"Result: {result}")
-
-&#x20;   
-
-&#x20;   recorder.stop()
-
-
-
-Run debugger:
-
-
-
-&#x20;   rewind replay bug.trace
-
-
-
-Navigate to frame 3. See that `discount` is 0.1 but should be 0.9 for 10% off.
-
-
-
-Example 2: Find where a variable changes
-
-
-
-&#x20;   rewind search trace.db counter
-
-
-
-Output shows every frame where `counter` appears with its value.
-
-
-
-Example 3: Compare state before and after function call
-
-
-
-&#x20;   rewind diff trace.db 10 15
-
-
-
-Output shows exactly which variables changed between line 10 and line 15.
-
-
-
-
-
-\## How It Works
-
-
-
-Rewind uses Python's sys.settrace() to capture execution state at each line:
-
-
-
-1\. Recorder hooks into the interpreter
-
-2\. At each line, local variables are serialized and compressed
-
-3\. Snapshots are stored in SQLite
-
-4\. Player loads snapshots and enables navigation
-
-5\. TUI provides keyboard-driven exploration
-
-
-
-Recording overhead is approximately 2-5x for pure Python code. Trace size averages 1KB per 100 lines of execution.
-
-
-
-
-
-\## Limitations
-
-
-
-\- Only records main thread (child threads not captured)
-
-\- Async function support is limited
-
-\- Non-serializable objects become type placeholders
-
-\- Not suitable for production monitoring
-
-\- Long-running scripts produce large trace files
-
-
-
-
-
-\## Contributing
-
-
-
-Contributions are welcome.
-
-
-
-Setup development environment:
-
-
-
-&#x20;   git clone https://github.com/rewind/rewind.git
-
-&#x20;   cd rewind
-
-&#x20;   pip install -e .\[dev]
-
-
-
-Run tests:
-
-
-
-&#x20;   pytest tests/ -v
-
-
-
-Run linters:
-
-
-
-&#x20;   black rewind/
-
-&#x20;   isort rewind/
-
-&#x20;   mypy rewind/
-
-
-
-
-
-\## License
-
-
+## License
 
 MIT License
 
+---
 
+## Links
 
-
-
-\## Links
-
-
-
-\- Source: https://github.com/rewind/rewind
-
-\- Issues: https://github.com/rewind/rewind/issues
-
-\- Documentation: docs/user\_guide.md
-
+* Repository: https://github.com/haianhace123/rewind
+* Issues: https://github.com/haianhace123/rewind/issues

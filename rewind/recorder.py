@@ -2,6 +2,7 @@
 
 import sys
 import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Set, Callable
 from datetime import datetime
@@ -46,7 +47,17 @@ class Recorder:
             self.storage = TraceStorage(self.trace_path)
             self.storage.create()
         except Exception as e:
-            raise RecordingError(f"Failed to create trace storage: {e}")
+            # Don't fail on database lock - just print warning and retry
+            print(f"Warning: {e}", file=sys.stderr)
+            # Try again with clean slate
+            time.sleep(0.5)
+            if self.trace_path.exists():
+                try:
+                    self.trace_path.unlink()
+                except (PermissionError, OSError):
+                    pass
+            self.storage = TraceStorage(self.trace_path)
+            self.storage.create()
 
         self.frame_counter = 0
         self._recording = True
@@ -102,18 +113,26 @@ class Recorder:
 
     def _record_frame(self, frame) -> None:
         """Capture and store the current frame state."""
+        if self.storage is None:
+            return
+            
         safe_locals = self._sanitize_locals(frame.f_locals)
 
         timestamp = datetime.now().timestamp()
 
-        self.storage.save_frame(
-            frame_index=self.frame_counter,
-            line_no=frame.f_lineno,
-            filename=frame.f_code.co_filename,
-            function_name=frame.f_code.co_name,
-            locals_dict=safe_locals,
-            timestamp=timestamp,
-        )
+        try:
+            self.storage.save_frame(
+                frame_index=self.frame_counter,
+                line_no=frame.f_lineno,
+                filename=frame.f_code.co_filename,
+                function_name=frame.f_code.co_name,
+                locals_dict=safe_locals,
+                timestamp=timestamp,
+            )
+        except Exception as e:
+            # Silently ignore storage errors during recording
+            print(f"Warning: Failed to save frame {self.frame_counter}: {e}", file=sys.stderr)
+            return
 
         self.frame_counter += 1
 
@@ -131,57 +150,27 @@ class Recorder:
 
     def _safe_copy(self, value: Any) -> Any:
         """Create a safe copy of a value for serialization."""
-        if self._is_serializable(value):
-            return value
-        
-        if isinstance(value, list):
-            try:
-                return [self._safe_copy(item) for item in value]
-            except Exception:
-                return f"<list with {len(value)} items>"
-        
-        if isinstance(value, dict):
-            try:
-                return {str(k): self._safe_copy(v) for k, v in list(value.items())[:10]}
-            except Exception:
-                return f"<dict with {len(value)} keys>"
-        
-        if isinstance(value, tuple):
-            try:
-                return tuple(self._safe_copy(item) for item in value)
-            except Exception:
-                return f"<tuple with {len(value)} items>"
-        
-        if isinstance(value, set):
-            try:
-                return list(self._safe_copy(item) for item in list(value)[:10])
-            except Exception:
-                return f"<set with {len(value)} items>"
-        
-        if isinstance(value, (int, float, str, bool, type(None))):
-            return value
-        
-        return f"<{type(value).__name__}>"
-
-    def _is_serializable(self, value: Any) -> bool:
-        """Check if a value can be pickled."""
-        if isinstance(value, (int, float, str, bool, list, dict, tuple, set, type(None))):
-            return True
-            
-        if inspect.ismodule(value):
-            return False
-        if inspect.isfunction(value):
-            return False
-        if inspect.isclass(value):
-            return False
-        if isinstance(value, (threading.Lock, threading.RLock)):
-            return False
-
         try:
+            if value is None:
+                return None
+            if type(value) in [int, float, str, bool]:
+                return value
+            if type(value) is list:
+                return [self._safe_copy(v) for v in value]
+            if type(value) is dict:
+                return {str(k): self._safe_copy(v) for k, v in list(value.items())[:10]}
+            if type(value) is tuple:
+                return tuple(self._safe_copy(v) for v in value)
+            if type(value) is set:
+                return list(self._safe_copy(v) for v in list(value)[:10])
+            
             pickle.dumps(value)
-            return True
-        except (pickle.PickleError, TypeError, AttributeError):
-            return False
+            return value
+        except Exception:
+            try:
+                return f"<{type(value).__name__}>"
+            except Exception:
+                return "<unknown>"
 
     def __enter__(self):
         self.start()

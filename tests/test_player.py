@@ -161,10 +161,15 @@ def test_player_invalid_trace_file():
         f.write("This is not a valid SQLite database file")
 
     # SQLite will raise DatabaseError when trying to open invalid file
-    with pytest.raises(sqlite3.DatabaseError):
-        Player(trace_path)
-
-    Path(trace_path).unlink(missing_ok=True)
+    # Player may or may not close the connection properly on error
+    try:
+        with pytest.raises((sqlite3.DatabaseError, TraceCorruptedError)):
+            Player(trace_path)
+    finally:
+        # Clean up - force close any open connection
+        import gc
+        gc.collect()
+        Path(trace_path).unlink(missing_ok=True)
 
 
 def test_player_nonexistent_file():

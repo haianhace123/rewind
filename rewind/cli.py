@@ -142,13 +142,11 @@ def search(trace: str, var_name: str) -> None:
 def info():
     """Show information about Rewind."""
     click.echo(f"""
-╭──────────────────────────────────╮
-│  Rewind v{__version__} - Time-Travel Debugger  │
-╰──────────────────────────────────╯
+Rewind v{__version__} - Time-Travel Debugger
 
-📦 Installation: pip install rewind
-📖 Documentation: https://github.com/rewind/rewind
-💬 Issues: https://github.com/rewind/rewind/issues
+Installation: pip install rewind-debugger
+Documentation: https://github.com/haianhace123/rewind
+Issues: https://github.com/haianhace123/rewind/issues
 
 Commands:
   record    Record program execution

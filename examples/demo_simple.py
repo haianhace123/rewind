@@ -1,6 +1,13 @@
+# -*- coding: utf-8 -*-
 """Simple demonstration of Rewind recording."""
 
 import sys
+import io
+
+# Fix encoding issues on Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 sys.path.insert(0, '.')
 
 from rewind import Recorder
@@ -15,7 +22,7 @@ def buggy_calculator(prices, discount):
 
 
 if __name__ == "__main__":
-    print("🎬 Recording demo...")
+    print(" Recording demo...")
 
     recorder = Recorder("demo.trace")
     recorder.start()
@@ -31,6 +38,6 @@ if __name__ == "__main__":
 
     recorder.stop()
 
-    print("\n✅ Trace saved to demo.trace")
+    print("\n Trace saved to demo.trace")
     print("\nNow run: rewind replay demo.trace")
-    print("Use ← → to navigate through frames and inspect variables")
+    print("Use arrow keys or a/d to navigate through frames")
