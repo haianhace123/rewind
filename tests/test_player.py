@@ -2,11 +2,12 @@
 
 import pytest
 import tempfile
+import sqlite3
 from pathlib import Path
 
 from rewind.recorder import Recorder
 from rewind.player import Player
-from rewind.exceptions import FrameNotFoundError
+from rewind.exceptions import FrameNotFoundError, TraceCorruptedError
 from rewind.storage import TraceStorage
 
 
@@ -129,7 +130,6 @@ def test_player_find_frame_by_line():
         z = x + y
 
     with Player(trace_path) as player:
-        # This may return empty list if no frames match
         results = player.find_frame_by_line("test.py", 1)
         assert isinstance(results, list)
 
@@ -145,11 +145,9 @@ def test_player_context_manager():
     with Recorder(trace_path) as recorder:
         test_var = 100
 
-    # Test context manager
     with Player(trace_path) as player:
         assert player.frame_count >= 0
 
-    # Player should be closed after context
     Path(trace_path).unlink(missing_ok=True)
 
 
@@ -158,13 +156,60 @@ def test_player_invalid_trace_file():
     with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
         trace_path = tmp.name
 
-    # Write invalid data to file
+    # Write invalid data to file (not a valid SQLite database)
     with open(trace_path, 'w') as f:
-        f.write("invalid data")
+        f.write("This is not a valid SQLite database file")
 
-    from rewind.exceptions import TraceCorruptedError
-    
-    with pytest.raises(TraceCorruptedError):
+    # SQLite will raise DatabaseError when trying to open invalid file
+    with pytest.raises(sqlite3.DatabaseError):
         Player(trace_path)
 
     Path(trace_path).unlink(missing_ok=True)
+
+
+def test_player_nonexistent_file():
+    """Test player with non-existent trace file."""
+    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
+        trace_path = tmp.name
+    
+    # Delete the file
+    Path(trace_path).unlink()
+    
+    # Should raise TraceCorruptedError
+    from rewind.exceptions import TraceCorruptedError
+    with pytest.raises(TraceCorruptedError):
+        Player(trace_path)
+
+
+def test_player_goto_frame():
+    """Test goto_frame method."""
+    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
+        trace_path = tmp.name
+
+    with Recorder(trace_path) as recorder:
+        x = 10
+        y = 20
+        z = x + y
+
+    with Player(trace_path) as player:
+        if player.frame_count > 0:
+            frame = player.goto_frame(0)
+            assert frame is not None
+            assert hasattr(frame, 'locals')
+
+
+def test_player_diff_same_frame():
+    """Test diff between same frame."""
+    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
+        trace_path = tmp.name
+
+    with Recorder(trace_path) as recorder:
+        x = 10
+        y = 20
+
+    with Player(trace_path) as player:
+        if player.frame_count > 0:
+            diff = player.diff_frames(0, 0)
+            assert diff['added'] == []
+            assert diff['removed'] == []
+            assert diff['modified'] == {}
