@@ -1,4 +1,4 @@
-\# Rewind
+# Rewind
 
 
 
@@ -12,27 +12,27 @@ Record program execution once. Navigate through every line. Find bugs in seconds
 
 
 
-\## Features
+## Features
 
 
 
-\- Time travel navigation through execution history
+- Time travel navigation through execution history
 
-\- Side-by-side diff between any two frames
+- Side-by-side diff between any two frames
 
-\- Variable search across all recorded frames
+- Variable search across all recorded frames
 
-\- Terminal user interface with keyboard navigation
+- Terminal user interface with keyboard navigation
 
-\- Command line tools for analysis
+- Command line tools for analysis
 
-\- Zero code changes required
-
-
+- Zero code changes required
 
 
 
-\## Installation
+
+
+## Installation
 
 
 
@@ -46,7 +46,7 @@ Requires Python 3.9 or higher.
 
 
 
-\## Quick Start
+## Quick Start
 
 
 
@@ -86,7 +86,7 @@ Use left/right arrow keys to move through execution frames.
 
 
 
-\## Documentation
+## Documentation
 
 
 
@@ -96,21 +96,21 @@ Full documentation is available in docs/user\_guide.md
 
 Key topics:
 
-\- Recording programs via API or command line
+- Recording programs via API or command line
 
-\- TUI navigation shortcuts
+- TUI navigation shortcuts
 
-\- Diff and search commands
+- Diff and search commands
 
-\- Python API reference
+- Python API reference
 
-\- Troubleshooting common issues
-
-
+- Troubleshooting common issues
 
 
 
-\## Command Line Reference
+
+
+## Command Line Reference
 
 
 
@@ -146,7 +146,7 @@ Key topics:
 
 
 
-\## Examples
+## Examples
 
 
 
@@ -226,7 +226,7 @@ Output shows exactly which variables changed between line 10 and line 15.
 
 
 
-\## How It Works
+## How It Works
 
 
 
@@ -252,25 +252,25 @@ Recording overhead is approximately 2-5x for pure Python code. Trace size averag
 
 
 
-\## Limitations
+## Limitations
 
 
 
-\- Only records main thread (child threads not captured)
+- Only records main thread (child threads not captured)
 
-\- Async function support is limited
+- Async function support is limited
 
-\- Non-serializable objects become type placeholders
+- Non-serializable objects become type placeholders
 
-\- Not suitable for production monitoring
+- Not suitable for production monitoring
 
-\- Long-running scripts produce large trace files
-
-
+- Long-running scripts produce large trace files
 
 
 
-\## Contributing
+
+
+## Contributing
 
 
 
@@ -312,7 +312,7 @@ Run linters:
 
 
 
-\## License
+## License
 
 
 
@@ -322,13 +322,13 @@ MIT License
 
 
 
-\## Links
+## Links
 
 
 
-\- Source: https://github.com/rewind/rewind
+- Source: https://github.com/rewind/rewind
 
-\- Issues: https://github.com/rewind/rewind/issues
+- Issues: https://github.com/rewind/rewind/issues
 
-\- Documentation: docs/user\_guide.md
+- Documentation: docs/user\_guide.md
 
