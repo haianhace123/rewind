@@ -326,9 +326,7 @@ MIT License
 
 
 
-- Source: https://github.com/rewind/rewind
-
-- Issues: https://github.com/rewind/rewind/issues
-
-- Documentation: docs/user\_guide.md
+- Source: https://github.com/haianhace123/rewind
+- Issues: https://github.com/haianhace123/rewind/issues
+- Documentation: docs/user_guide.md
 
